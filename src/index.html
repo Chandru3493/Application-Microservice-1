@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Todo App</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      height: fit-content;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      color: #1a1a2e;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #888;
+      font-size: 0.9rem;
+      margin-bottom: 24px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input[type="text"]:focus { border-color: #4f46e5; }
+
+    button.add-btn {
+      background: #4f46e5;
+      color: white;
+      border: none;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button.add-btn:hover { background: #4338ca; }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .filter-btn {
+      padding: 6px 14px;
+      border: 1.5px solid #e0e0e0;
+      background: white;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn.active {
+      background: #4f46e5;
+      color: white;
+      border-color: #4f46e5;
+    }
+
+    ul { list-style: none; }
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; } }
+
+    li input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #4f46e5;
+      cursor: pointer;
+    }
+
+    li span {
+      flex: 1;
+      font-size: 0.95rem;
+      color: #333;
+      transition: all 0.2s;
+    }
+
+    li span.done {
+      text-decoration: line-through;
+      color: #aaa;
+    }
+
+    li button.del-btn {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    li button.del-btn:hover { color: #ef4444; }
+
+    .footer {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      color: #888;
+    }
+
+    .clear-btn {
+      background: none;
+      border: none;
+      color: #4f46e5;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .clear-btn:hover { text-decoration: underline; }
+
+    .empty {
+      text-align: center;
+      color: #bbb;
+      padding: 32px 0;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📝 Todo App</h1>
+    <p class="subtitle">Running on AKS via ArgoCD</p>
+
+    <div class="input-row">
+      <input type="text" id="todoInput" placeholder="Add a new task..." />
+      <button class="add-btn" onclick="addTodo()">Add</button>
+    </div>
+
+    <div class="filters">
+      <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+      <button class="filter-btn" onclick="setFilter('active', this)">Active</button>
+      <button class="filter-btn" onclick="setFilter('done', this)">Done</button>
+    </div>
+
+    <ul id="todoList"></ul>
+    <p class="empty" id="emptyMsg" style="display:none">No tasks here 🎉</p>
+
+    <div class="footer">
+      <span id="counter">0 tasks left</span>
+      <button class="clear-btn" onclick="clearDone()">Clear completed</button>
+    </div>
+  </div>
+
+  <script>
+    let todos = JSON.parse(localStorage.getItem('todos') || '[]');
+    let filter = 'all';
+
+    const input = document.getElementById('todoInput');
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') addTodo(); });
+
+    function save() { localStorage.setItem('todos', JSON.stringify(todos)); }
+
+    function addTodo() {
+      const text = input.value.trim();
+      if (!text) return;
+      todos.push({ id: Date.now(), text, done: false });
+      input.value = '';
+      save(); render();
+    }
+
+    function toggle(id) {
+      todos = todos.map(t => t.id === id ? { ...t, done: !t.done } : t);
+      save(); render();
+    }
+
+    function remove(id) {
+      todos = todos.filter(t => t.id !== id);
+      save(); render();
+    }
+
+    function clearDone() {
+      todos = todos.filter(t => !t.done);
+      save(); render();
+    }
+
+    function setFilter(f, btn) {
+      filter = f;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    }
+
+    function render() {
+      const list = document.getElementById('todoList');
+      const empty = document.getElementById('emptyMsg');
+      const filtered = todos.filter(t =>
+        filter === 'all' ? true : filter === 'active' ? !t.done : t.done
+      );
+
+      list.innerHTML = filtered.map(t => `
+        <li>
+          <input type="checkbox" ${t.done ? 'checked' : ''} onchange="toggle(${t.id})" />
+          <span class="${t.done ? 'done' : ''}">${t.text}</span>
+          <button class="del-btn" onclick="remove(${t.id})">✕</button>
+        </li>
+      `).join('');
+
+      empty.style.display = filtered.length === 0 ? 'block' : 'none';
+      const left = todos.filter(t => !t.done).length;
+      document.getElementById('counter').textContent = `${left} task${left !== 1 ? 's' : ''} left`;
+    }
+
+    render();
+  </script>
+</body>
+</html>

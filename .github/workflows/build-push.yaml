@@ -1,0 +1,56 @@
+name: Build and Push to ACR
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "Dockerfile"
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  ACR_NAME: avaeusdbwacr
+  IMAGE_NAME: todo-app
+  IMAGE_TAG: latest
+
+jobs:
+  build-and-push:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build Docker Image
+        run: |
+          docker build \
+            -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
+            -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            .
+
+      - name: Push Docker Image
+        run: |
+          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+          docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Summary
+        run: |
+          echo "### Image pushed successfully 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image:** \`${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit tag:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ArgoCD Image Updater** will detect the new digest and redeploy automatically" >> $GITHUB_STEP_SUMMARY
