@@ -48,6 +48,13 @@ jobs:
           docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
           docker push ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
+      - name: Purge old images from ACR
+        run: |
+          az acr run \
+            --registry ${{ env.ACR_NAME }} \
+            --cmd "acr purge --filter '${{ env.IMAGE_NAME }}:[0-9a-f]{40}' --ago 30d --untagged" \
+            /dev/null
+
       - name: Summary
         run: |
           echo "### Image pushed successfully 🚀" >> $GITHUB_STEP_SUMMARY
