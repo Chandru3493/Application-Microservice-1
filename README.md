@@ -9,7 +9,7 @@ Developer pushes code to main
         │
 GitHub Actions builds Docker image
         │
-Pushes image to Azure Container Registry (cloudzen-prod-acr)
+Pushes image to Azure Container Registry (cloudzenprodacr)
         │
 ArgoCD Image Updater detects new digest
         │
@@ -51,7 +51,7 @@ docker run -p 8080:80 todo-app
 
 On every push to `main`, GitHub Actions:
 1. Builds the Docker image
-2. Pushes it to `cloudzen-prod-acr.azurecr.io/todo-app:latest`
+2. Pushes it to `cloudzenprodacr.azurecr.io/todo-app:latest`
 3. ArgoCD Image Updater detects the new digest within 2 minutes
 4. Automatically deploys to the AKS cluster
 
