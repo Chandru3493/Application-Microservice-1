@@ -52,7 +52,7 @@ jobs:
         run: |
           az acr run \
             --registry ${{ env.ACR_NAME }} \
-            --cmd "acr purge --filter '${{ env.IMAGE_NAME }}:[0-9a-f]{40}' --ago 30d --untagged" \
+            --cmd "acr purge --filter '${{ env.IMAGE_NAME }}:[0-9a-f]{40}' --ago 10d --untagged" \
             /dev/null
 
       - name: Summary
