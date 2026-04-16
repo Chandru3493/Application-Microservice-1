@@ -22,6 +22,7 @@ jobs:
   build-and-push:
     name: Build and Push
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -42,11 +43,11 @@ jobs:
       - name: Login to ACR
         run: az acr login --name ${{ env.ACR_NAME }}
 
-      - name: Build and Push Docker Image
+      - name: Build and Push Docker Image (MULTI-ARCH)
         run: |
           docker buildx build \
-            --platform linux/arm64 \
-            --output type=registry \
+            --platform linux/amd64,linux/arm64 \
+            --push \
             -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }} \
             -t ${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             .
@@ -63,5 +64,4 @@ jobs:
           echo "### Image pushed successfully 🚀" >> $GITHUB_STEP_SUMMARY
           echo "- **Image:** \`${{ env.ACR_NAME }}.azurecr.io/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit tag:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **Platform:** \`linux/arm64\`" >> $GITHUB_STEP_SUMMARY
-          echo "- **ArgoCD Image Updater** will detect the new digest and redeploy automatically" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platforms:** \`linux/amd64, linux/arm64\`" >> $GITHUB_STEP_SUMMARY
