@@ -14,7 +14,7 @@ permissions:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ACR_NAME: avaeusdbwacr
+  ACR_NAME: cloudzen-prod-acr
   IMAGE_NAME: todo-app
   IMAGE_TAG: latest
 
